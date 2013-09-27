@@ -1,0 +1,27 @@
+{
+  "name": "stripe2ofx",
+  "version": "0.1.0",
+  "description": "A small command line utility that converts the [Stripe](http://stripe.com) transfer exports  (CSV) to the [OFX](http://en.wikipedia.org/wiki/Open_Financial_Exchange) file format often used by accounting software for bank statement imports.",
+  "main": "stripe2ofx.js",
+  "dependencies": {
+    "csv": "~0.3.6",
+    "moment": "~2.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nordbergm/stripe2ofx.git"
+  },
+  "keywords": [
+    "stripe",
+    "ofx"
+  ],
+  "author": "Mattias Nordberg",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/nordbergm/stripe2ofx/issues"
+  }
+}
