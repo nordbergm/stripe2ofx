@@ -134,6 +134,11 @@ function writeFooter(writer) {
 
 function writeRow(writer, data, i) {
   var memo = getCell(data, data[i], 'Description');
+
+  if (!memo || memo == '') {
+    memo = getCell(data, data[i], 'ID');
+  }
+
   var date = moment(getCell(data, data[i], 'Date'));
   var id = date.format('YYYYMMDDHHmm') + i;
   var amount = getAmount(data, i);
