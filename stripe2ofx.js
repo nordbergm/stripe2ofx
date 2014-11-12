@@ -62,15 +62,21 @@ function ensureFileIsUniformCurrency(data) {
   return first_currency_code;
 }
 
+// deal with Stripe inserting things like commas into the data
+// this function removes any characters that aren't 0-9 . or - and converts to float
+function getFloat(str) {
+  return parseFloat(str.replace(/[^0-9\.\-]/g, ''));
+}
+
 function getAmount(data, i) {
-  var amount = parseFloat(getCell(data, data[i], 'Amount').replace(/[^0-9\.\-]/g, ''));
+  var amount = getFloat(getCell(data, data[i], 'Amount'));
   var refund = getCell(data, data[i], 'Type') == 'Refund';
 
   return refund ? amount * -1 : amount;
 }
 
 function getFees(data, i) {
-  return parseFloat(getCell(data, data[i], 'Fees').replace(/[^0-9\.\-]/g, ''));
+  return getFloat(getCell(data, data[i], 'Fees'));
 }
 
 function getCell(data, row, column) {
