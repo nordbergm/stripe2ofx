@@ -1,11 +1,6 @@
 var csv = require('csv'),
     fs = require('fs'),
     moment = require('moment'),
-    currencies = [
-      { sign: '$', code: 'USD' },
-      { sign: '£', code: 'GBP' },
-      { sign: '€', code: 'EUR' }
-    ],
     currency,
     startDate,
     endDate,
@@ -21,25 +16,15 @@ function init(data) {
 
   console.log('Transactions:\t' + (data.length - 1));
 
-  for (i = 0; i < currencies.length; i++) {
-    var cur = currencies[i];
-    if (getCell(data, data[1], 'Amount').indexOf(cur.sign) == 0) {
-      currency = cur;
-      break;
-    }
-  }
-
-  if (!currency) {
-    throw 'Could not determine currency of transactions, or currency not supported';
-  } else {
-    console.log('Currency:\t\t' + currency.code);
-  }
+  // limitation: we only support uniform currency files right now, make sure everything is the same currency
+  currency = ensureFileIsUniformCurrency(data);
+  console.log('Currency:\t\t' + currency);
 
   for (i = 1; i < data.length; i++) {
     total += (getAmount(data, i) - getFees(data, i));
   }
 
-  console.log("Total:\t\t\t" + currency.sign + total.toFixed(2));
+  console.log("Total:\t\t\t" + total.toFixed(2) + " " + currency.toUpperCase());
 
   for (i = 1; i < data.length; i++) {
     var row = data[i];
@@ -59,6 +44,22 @@ function init(data) {
   console.log('Start Date:\t\t' + startDate.format('YYYY-MM-DD'));
   console.log('End Date:\t\t' + endDate.format('YYYY-MM-DD'));
   console.log('Transfer Date:\t' + transferDate.format('YYYY-MM-DD'));
+}
+
+// ensure that the currency of all transactions in this file is uniform.
+// (Note: this program doesn't support multi-currency, yet)
+// returns:  three-letter currency code that this file uses, or throws an exception if non-uniform
+function ensureFileIsUniformCurrency(data) {
+  var first_currency_code = getCell(data, data[1], 'Currency');
+
+  for (var i = 2; i < data.length; i++) {
+    var row_currency_code = getCell(data, data[i], 'Currency');
+    if (row_currency_code != first_currency_code) {
+      throw 'Error: This program does not yet support files with more than 1 type of currency';
+    }
+  }
+
+  return first_currency_code;
 }
 
 function getAmount(data, i) {
@@ -106,7 +107,7 @@ function writeHeader(writer) {
   writer.push('\t\t\t\t<SEVERITY>INFO\n');
   writer.push('\t\t\t</STATUS>\n');
   writer.push('\t\t\t<STMTRS>\n');
-  writer.push('\t\t\t\t<CURDEF>' + currency.code + '\n');
+  writer.push('\t\t\t\t<CURDEF>' + currency.toUpperCase() + '\n');
   writer.push('\t\t\t\t\t<BANKACCTFROM>\n');
   writer.push('\t\t\t\t\t\t<BANKID>001\n');
   writer.push('\t\t\t\t\t\t<ACCTID>001\n');
