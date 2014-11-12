@@ -17,9 +17,11 @@ function init(data) {
     throw 'File does not contain any transactions.';
   }
 
+  var i;
+
   console.log('Transactions:\t' + (data.length - 1));
 
-  for (var i = 0; i < currencies.length; i++) {
+  for (i = 0; i < currencies.length; i++) {
     var cur = currencies[i];
     if (getCell(data, data[1], 'Amount').indexOf(cur.sign) == 0) {
       currency = cur;
@@ -28,18 +30,18 @@ function init(data) {
   }
 
   if (!currency) {
-    throw 'Could not determine currency of transactions';
+    throw 'Could not determine currency of transactions, or currency not supported';
   } else {
     console.log('Currency:\t\t' + currency.code);
   }
 
-  for (var i = 1; i < data.length; i++) {
+  for (i = 1; i < data.length; i++) {
     total += (getAmount(data, i) - getFees(data, i));
   }
 
   console.log("Total:\t\t\t" + currency.sign + total.toFixed(2));
 
-  for (var i = 1; i < data.length; i++) {
+  for (i = 1; i < data.length; i++) {
     var row = data[i];
     var date = moment(getCell(data, row, 'Date'));
 
@@ -98,20 +100,20 @@ function writeHeader(writer) {
   writer.push('<OFX>\n');
   writer.push('\t<BANKMSGSRSV1>\n');
   writer.push('\t\t<STMTTRNRS>\n');
-  writer.push('\t\t\t<TRNUID>0\n')
+  writer.push('\t\t\t<TRNUID>0\n');
   writer.push('\t\t\t<STATUS>\n');
-  writer.push('\t\t\t\t<CODE>0\n')
-  writer.push('\t\t\t\t<SEVERITY>INFO\n')
+  writer.push('\t\t\t\t<CODE>0\n');
+  writer.push('\t\t\t\t<SEVERITY>INFO\n');
   writer.push('\t\t\t</STATUS>\n');
   writer.push('\t\t\t<STMTRS>\n');
-  writer.push('\t\t\t\t<CURDEF>' + currency.code + '\n')
+  writer.push('\t\t\t\t<CURDEF>' + currency.code + '\n');
   writer.push('\t\t\t\t\t<BANKACCTFROM>\n');
-  writer.push('\t\t\t\t\t\t<BANKID>001\n')
-  writer.push('\t\t\t\t\t\t<ACCTID>001\n')
-  writer.push('\t\t\t\t\t\t<ACCTTYPE>CHECKING\n')
+  writer.push('\t\t\t\t\t\t<BANKID>001\n');
+  writer.push('\t\t\t\t\t\t<ACCTID>001\n');
+  writer.push('\t\t\t\t\t\t<ACCTTYPE>CHECKING\n');
   writer.push('\t\t\t\t\t</BANKACCTFROM>\n');
   writer.push('\t\t\t\t\t<BANKTRANLIST>\n');
-  writer.push('\t\t\t\t\t\t<DTSTART>' + formatDate(startDate) + '\n')
+  writer.push('\t\t\t\t\t\t<DTSTART>' + formatDate(startDate) + '\n');
   writer.push('\t\t\t\t\t\t<DTEND>' + formatDate(endDate) + '\n')
 }
 
