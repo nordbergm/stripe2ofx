@@ -1,11 +1,6 @@
 var csv = require('csv'),
     fs = require('fs'),
     moment = require('moment'),
-    currencies = [
-      { sign: '$', code: 'USD' },
-      { sign: '£', code: 'GBP' },
-      { sign: '€', code: 'EUR' }
-    ],
     currency,
     startDate,
     endDate,
@@ -17,29 +12,21 @@ function init(data) {
     throw 'File does not contain any transactions.';
   }
 
+  var i;
+
   console.log('Transactions:\t' + (data.length - 1));
 
-  for (var i = 0; i < currencies.length; i++) {
-    var cur = currencies[i];
-    if (getCell(data, data[1], 'Amount').indexOf(cur.sign) == 0) {
-      currency = cur;
-      break;
-    }
-  }
+  // limitation: we only support uniform currency files right now, make sure everything is the same currency
+  currency = ensureFileIsUniformCurrency(data);
+  console.log('Currency:\t\t' + currency);
 
-  if (!currency) {
-    throw 'Could not determine currency of transactions';
-  } else {
-    console.log('Currency:\t\t' + currency.code);
-  }
-
-  for (var i = 1; i < data.length; i++) {
+  for (i = 1; i < data.length; i++) {
     total += (getAmount(data, i) - getFees(data, i));
   }
 
-  console.log("Total:\t\t\t" + currency.sign + total.toFixed(2));
+  console.log("Total:\t\t\t" + total.toFixed(2) + " " + currency.toUpperCase());
 
-  for (var i = 1; i < data.length; i++) {
+  for (i = 1; i < data.length; i++) {
     var row = data[i];
     var date = moment(getCell(data, row, 'Date'));
 
@@ -59,15 +46,37 @@ function init(data) {
   console.log('Transfer Date:\t' + transferDate.format('YYYY-MM-DD'));
 }
 
+// ensure that the currency of all transactions in this file is uniform.
+// (Note: this program doesn't support multi-currency, yet)
+// returns:  three-letter currency code that this file uses, or throws an exception if non-uniform
+function ensureFileIsUniformCurrency(data) {
+  var first_currency_code = getCell(data, data[1], 'Currency');
+
+  for (var i = 2; i < data.length; i++) {
+    var row_currency_code = getCell(data, data[i], 'Currency');
+    if (row_currency_code != first_currency_code) {
+      throw 'Error: This program does not yet support files with more than 1 type of currency';
+    }
+  }
+
+  return first_currency_code;
+}
+
+// deal with Stripe inserting things like commas into the data
+// this function removes any characters that aren't 0-9 . or - and converts to float
+function getFloat(str) {
+  return parseFloat(str.replace(/[^0-9\.\-]/g, ''));
+}
+
 function getAmount(data, i) {
-  var amount = parseFloat(getCell(data, data[i], 'Amount').replace(/[^0-9\.\-]/g, ''));
+  var amount = getFloat(getCell(data, data[i], 'Amount'));
   var refund = getCell(data, data[i], 'Type') == 'Refund';
 
   return refund ? amount * -1 : amount;
 }
 
 function getFees(data, i) {
-  return parseFloat(getCell(data, data[i], 'Fees').replace(/[^0-9\.\-]/g, ''));
+  return getFloat(getCell(data, data[i], 'Fees'));
 }
 
 function getCell(data, row, column) {
@@ -98,20 +107,20 @@ function writeHeader(writer) {
   writer.push('<OFX>\n');
   writer.push('\t<BANKMSGSRSV1>\n');
   writer.push('\t\t<STMTTRNRS>\n');
-  writer.push('\t\t\t<TRNUID>0\n')
+  writer.push('\t\t\t<TRNUID>0\n');
   writer.push('\t\t\t<STATUS>\n');
-  writer.push('\t\t\t\t<CODE>0\n')
-  writer.push('\t\t\t\t<SEVERITY>INFO\n')
+  writer.push('\t\t\t\t<CODE>0\n');
+  writer.push('\t\t\t\t<SEVERITY>INFO\n');
   writer.push('\t\t\t</STATUS>\n');
   writer.push('\t\t\t<STMTRS>\n');
-  writer.push('\t\t\t\t<CURDEF>' + currency.code + '\n')
+  writer.push('\t\t\t\t<CURDEF>' + currency.toUpperCase() + '\n');
   writer.push('\t\t\t\t\t<BANKACCTFROM>\n');
-  writer.push('\t\t\t\t\t\t<BANKID>001\n')
-  writer.push('\t\t\t\t\t\t<ACCTID>001\n')
-  writer.push('\t\t\t\t\t\t<ACCTTYPE>CHECKING\n')
+  writer.push('\t\t\t\t\t\t<BANKID>001\n');
+  writer.push('\t\t\t\t\t\t<ACCTID>001\n');
+  writer.push('\t\t\t\t\t\t<ACCTTYPE>CHECKING\n');
   writer.push('\t\t\t\t\t</BANKACCTFROM>\n');
   writer.push('\t\t\t\t\t<BANKTRANLIST>\n');
-  writer.push('\t\t\t\t\t\t<DTSTART>' + formatDate(startDate) + '\n')
+  writer.push('\t\t\t\t\t\t<DTSTART>' + formatDate(startDate) + '\n');
   writer.push('\t\t\t\t\t\t<DTEND>' + formatDate(endDate) + '\n')
 }
 
