@@ -1,3 +1,5 @@
+Disclaimer: recent changes to Stripe's export process have broken this project.  Anyone wishing to use this code will have to fix it.  Look at the WIP-updates branch for initial work that has been done, and check out the issue tracker for the correct formulas to compute the right sums of the fees, charges/etc.
+
 # Stripe 2 OFX #
 
 A small command line utility that converts the [Stripe](http://stripe.com) transfer exports  (CSV) to the [OFX](http://en.wikipedia.org/wiki/Open_Financial_Exchange) file format often used by accounting software for bank statement imports.
